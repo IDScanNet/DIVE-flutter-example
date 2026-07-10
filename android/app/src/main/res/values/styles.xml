@@ -1,0 +1,247 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Theme applied to the Android Window while the process is starting when the OS's Dark Mode setting is off -->
+    <style name="LaunchTheme" parent="Theme.MaterialComponents.Light.NoActionBar">
+        <!-- Show a splash screen on the activity. Automatically removed when
+             the Flutter engine draws its first frame -->
+        <item name="android:windowBackground">@drawable/launch_background</item>
+    </style>
+    <!-- Theme applied to the Android Window as soon as the process has started.
+         This theme determines the color of the Android Window while your
+         Flutter UI initializes, as well as behind your Flutter UI while its
+         running.
+
+         This Theme is only used starting with V2 of Flutter's Android embedding. -->
+    <style name="NormalTheme" parent="Theme.MaterialComponents.Light.NoActionBar">
+        <item name="android:windowBackground">?android:colorBackground</item>
+    </style>
+
+    <!-- =====================================================
+         DIVE SDK Custom Theme - Native Android Material Design
+         ===================================================== -->
+    <style name="Theme.DiveDemo" parent="Theme.MaterialComponents.Light.NoActionBar">
+        <!-- Primary brand colors -->
+        <item name="colorPrimary">@color/colorPrimary</item>
+        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
+        <item name="colorPrimaryVariant">@color/colorPrimaryVariant</item>
+        <item name="colorOnPrimary">@color/colorOnPrimary</item>
+
+        <!-- Secondary colors -->
+        <item name="colorSecondary">@color/colorSecondary</item>
+        <item name="colorSecondaryVariant">@color/colorSecondaryVariant</item>
+        <item name="colorOnSecondary">@color/colorOnSecondary</item>
+
+        <!-- Background and surface -->
+        <item name="android:colorBackground">@color/colorBackground</item>
+        <item name="colorSurface">@color/colorSurface</item>
+        <item name="colorOnBackground">@color/colorOnBackground</item>
+        <item name="colorOnSurface">@color/colorOnSurface</item>
+
+        <!-- Error colors -->
+        <item name="colorError">@color/colorError</item>
+        <item name="colorOnError">@color/colorOnError</item>
+
+        <!-- Typography - use overridden DVS styles -->
+        <item name="textAppearanceHeadline1">@style/TextAppearance.DVS.Headline1</item>
+        <item name="textAppearanceHeadline2">@style/TextAppearance.DVS.Headline2</item>
+        <item name="textAppearanceHeadline3">@style/TextAppearance.DVS.Headline3</item>
+        <item name="textAppearanceHeadline4">@style/TextAppearance.DVS.Headline4</item>
+        <item name="textAppearanceHeadline5">@style/TextAppearance.DVS.Headline5</item>
+        <item name="textAppearanceHeadline6">@style/TextAppearance.DVS.Headline6</item>
+        <item name="textAppearanceBody1">@style/TextAppearance.DVS.Body1</item>
+        <item name="textAppearanceBody2">@style/TextAppearance.DVS.Body2</item>
+        <item name="textAppearanceSubtitle1">@style/TextAppearance.DVS.Subtitle1</item>
+        <item name="textAppearanceSubtitle2">@style/TextAppearance.DVS.Subtitle2</item>
+        <item name="textAppearanceCaption">@style/TextAppearance.DVS.Caption</item>
+        <item name="textAppearanceButton">@style/TextAppearance.DVS.Button</item>
+        <item name="textAppearanceOverline">@style/TextAppearance.DVS.Overline</item>
+
+        <!-- Shape appearances -->
+        <item name="shapeAppearanceSmallComponent">@style/ShapeAppearance.DiveDemo.SmallComponent</item>
+        <item name="shapeAppearanceMediumComponent">@style/ShapeAppearance.DiveDemo.MediumComponent</item>
+        <item name="shapeAppearanceLargeComponent">@style/ShapeAppearance.DiveDemo.LargeComponent</item>
+
+        <!-- Button styles -->
+        <item name="materialButtonStyle">@style/Widget.DiveDemo.Button</item>
+        <item name="materialButtonOutlinedStyle">@style/Widget.DiveDemo.Button.Outlined</item>
+
+        <!-- Dialog style -->
+        <item name="materialAlertDialogTheme">@style/ThemeOverlay.DiveDemo.AlertDialog</item>
+    </style>
+
+    <!-- =====================================================
+         Override DVS Typography Styles directly
+         SDK uses these styles internally, so we override them
+         ===================================================== -->
+    <style name="TextAppearance.DVS.Headline1" parent="TextAppearance.MaterialComponents.Headline1">
+        <item name="android:textColor">@color/textColorPrimary</item>
+        <item name="fontFamily">sans-serif-light</item>
+        <item name="android:fontFamily">sans-serif-light</item>
+        <item name="android:textSize">32sp</item>
+    </style>
+
+    <style name="TextAppearance.DVS.Headline2" parent="TextAppearance.MaterialComponents.Headline2">
+        <item name="android:textColor">@color/textColorPrimary</item>
+        <item name="fontFamily">sans-serif-light</item>
+        <item name="android:fontFamily">sans-serif-light</item>
+        <item name="android:textSize">28sp</item>
+    </style>
+
+    <style name="TextAppearance.DVS.Headline3" parent="TextAppearance.MaterialComponents.Headline3">
+        <item name="android:textColor">@color/textColorPrimary</item>
+        <item name="fontFamily">sans-serif</item>
+        <item name="android:fontFamily">sans-serif</item>
+        <item name="android:textSize">24sp</item>
+    </style>
+
+    <style name="TextAppearance.DVS.Headline4" parent="TextAppearance.MaterialComponents.Headline4">
+        <item name="android:textColor">@color/textColorPrimary</item>
+        <item name="fontFamily">sans-serif</item>
+        <item name="android:fontFamily">sans-serif</item>
+        <item name="android:textSize">20sp</item>
+    </style>
+
+    <style name="TextAppearance.DVS.Headline5" parent="TextAppearance.MaterialComponents.Headline5">
+        <item name="android:textColor">@color/textColorPrimary</item>
+        <item name="fontFamily">sans-serif-medium</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+        <item name="android:textSize">18sp</item>
+    </style>
+
+    <style name="TextAppearance.DVS.Headline6" parent="TextAppearance.MaterialComponents.Headline6">
+        <item name="android:textColor">@color/textColorPrimary</item>
+        <item name="fontFamily">sans-serif-medium</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+        <item name="android:textSize">16sp</item>
+    </style>
+
+    <style name="TextAppearance.DVS.Subtitle1" parent="TextAppearance.MaterialComponents.Subtitle1">
+        <item name="android:textColor">@color/textColorPrimary</item>
+        <item name="fontFamily">sans-serif</item>
+        <item name="android:fontFamily">sans-serif</item>
+        <item name="android:textSize">16sp</item>
+    </style>
+
+    <style name="TextAppearance.DVS.Subtitle2" parent="TextAppearance.MaterialComponents.Subtitle2">
+        <item name="android:textColor">@color/textColorSecondary</item>
+        <item name="fontFamily">sans-serif-medium</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+        <item name="android:textSize">14sp</item>
+    </style>
+
+    <style name="TextAppearance.DVS.Body1" parent="TextAppearance.MaterialComponents.Body1">
+        <item name="android:textColor">@color/textColorPrimary</item>
+        <item name="fontFamily">sans-serif</item>
+        <item name="android:fontFamily">sans-serif</item>
+        <item name="android:textSize">16sp</item>
+    </style>
+
+    <style name="TextAppearance.DVS.Body2" parent="TextAppearance.MaterialComponents.Body2">
+        <item name="android:textColor">@color/textColorSecondary</item>
+        <item name="fontFamily">sans-serif</item>
+        <item name="android:fontFamily">sans-serif</item>
+        <item name="android:textSize">14sp</item>
+    </style>
+
+    <style name="TextAppearance.DVS.Caption" parent="TextAppearance.MaterialComponents.Caption">
+        <item name="android:textColor">@color/textColorSecondary</item>
+        <item name="fontFamily">sans-serif</item>
+        <item name="android:fontFamily">sans-serif</item>
+        <item name="android:textSize">12sp</item>
+    </style>
+
+    <style name="TextAppearance.DVS.Button" parent="TextAppearance.MaterialComponents.Button">
+        <item name="android:textColor">@color/colorOnPrimary</item>
+        <item name="fontFamily">sans-serif-medium</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+        <item name="android:textSize">14sp</item>
+        <item name="android:textAllCaps">false</item>
+    </style>
+
+    <style name="TextAppearance.DVS.Overline" parent="TextAppearance.MaterialComponents.Overline">
+        <item name="android:textColor">@color/textColorSecondary</item>
+        <item name="fontFamily">sans-serif</item>
+        <item name="android:fontFamily">sans-serif</item>
+        <item name="android:textSize">10sp</item>
+        <item name="android:textAllCaps">true</item>
+    </style>
+
+    <!-- =====================================================
+         Shape Appearances - Rounded corners native Android style
+         ===================================================== -->
+    <style name="ShapeAppearance.DiveDemo.SmallComponent" parent="ShapeAppearance.DVS.SmallComponent">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">8dp</item>
+    </style>
+
+    <style name="ShapeAppearance.DiveDemo.MediumComponent" parent="ShapeAppearance.DVS.MediumComponent">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">12dp</item>
+    </style>
+
+    <style name="ShapeAppearance.DiveDemo.LargeComponent" parent="ShapeAppearance.DVS.LargeComponent">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">16dp</item>
+    </style>
+
+    <!-- =====================================================
+         Button Styles - Material Design 3 inspired
+         ===================================================== -->
+    <style name="Widget.DiveDemo.Button" parent="Widget.DVS.MaterialButton">
+        <item name="android:textAppearance">@style/TextAppearance.DVS.Button</item>
+        <item name="android:textAllCaps">false</item>
+        <item name="cornerRadius">20dp</item>
+        <item name="android:paddingLeft">24dp</item>
+        <item name="android:paddingRight">24dp</item>
+        <item name="android:paddingTop">12dp</item>
+        <item name="android:paddingBottom">12dp</item>
+        <item name="android:minHeight">48dp</item>
+        <item name="backgroundTint">@color/colorPrimary</item>
+        <item name="iconTint">@color/colorOnPrimary</item>
+        <item name="iconPadding">8dp</item>
+        <item name="rippleColor">@color/colorPrimaryVariant</item>
+    </style>
+
+    <style name="Widget.DiveDemo.Button.Outlined" parent="Widget.DVS.OutlinedMaterialButton">
+        <item name="android:textAppearance">@style/TextAppearance.DVS.Button</item>
+        <item name="android:textColor">@color/colorPrimary</item>
+        <item name="android:textAllCaps">false</item>
+        <item name="cornerRadius">20dp</item>
+        <item name="android:paddingLeft">24dp</item>
+        <item name="android:paddingRight">24dp</item>
+        <item name="android:paddingTop">12dp</item>
+        <item name="android:paddingBottom">12dp</item>
+        <item name="android:minHeight">48dp</item>
+        <item name="strokeColor">@color/colorPrimary</item>
+        <item name="strokeWidth">1dp</item>
+        <item name="iconTint">@color/colorPrimary</item>
+        <item name="iconPadding">8dp</item>
+        <item name="rippleColor">@color/colorPrimaryVariant</item>
+    </style>
+
+    <!-- =====================================================
+         Alert Dialog Style - Native Material look
+         ===================================================== -->
+    <style name="ThemeOverlay.DiveDemo.AlertDialog" parent="ThemeOverlay.DVS.AlertDialog">
+        <item name="colorPrimary">@color/colorPrimary</item>
+        <item name="colorSurface">@color/colorSurface</item>
+        <item name="colorOnSurface">@color/colorOnSurface</item>
+        <item name="shapeAppearanceMediumComponent">@style/ShapeAppearance.DiveDemo.MediumComponent</item>
+        <item name="buttonBarPositiveButtonStyle">@style/Widget.DiveDemo.Button.Dialog</item>
+        <item name="buttonBarNegativeButtonStyle">@style/Widget.DiveDemo.Button.Dialog.Negative</item>
+    </style>
+
+    <style name="Widget.DiveDemo.Button.Dialog" parent="Widget.MaterialComponents.Button.TextButton.Dialog">
+        <item name="android:textColor">@color/colorPrimary</item>
+        <item name="android:textAllCaps">false</item>
+        <item name="fontFamily">sans-serif-medium</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+    </style>
+
+    <style name="Widget.DiveDemo.Button.Dialog.Negative" parent="Widget.MaterialComponents.Button.TextButton.Dialog">
+        <item name="android:textColor">@color/textColorSecondary</item>
+        <item name="android:textAllCaps">false</item>
+        <item name="fontFamily">sans-serif-medium</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+    </style>
+</resources>

@@ -1,0 +1,152 @@
+{
+    "autoContinue": false,
+    "autoStart": false,
+    "autoSubmit": false,
+    "isShowDocumentTypeSelect": false,
+    "realFaceMode": "auto",
+    "documentTypes": [
+        {
+            "isActive": true,
+            "type": "ID",
+            "steps": [
+                {
+                    "type": "front",
+                    "name": "Document Front",
+                    "mode": {
+                        "uploader": true,
+                        "video": true
+                    }
+                },
+                {
+                    "type": "pdf",
+                    "name": "Document PDF417 Barcode",
+                    "mode": {
+                        "uploader": true,
+                        "video": true
+                    }
+                },
+                {
+                    "type": "face",
+                    "name": "Face",
+                    "mode": {
+                        "uploader": true,
+                        "video": true
+                    }
+                }
+            ]
+        },
+        {
+            "isActive": true,
+            "type": "Passport",
+            "steps": [
+                {
+                    "type": "front",
+                    "name": "Document Front",
+                    "mode": {
+                        "uploader": true,
+                        "video": true
+                    }
+                },
+                {
+                    "type": "face",
+                    "name": "Face",
+                    "mode": {
+                        "uploader": true,
+                        "video": true
+                    }
+                }
+            ]
+        },
+        {
+            "isActive": true,
+            "type": "PassportCard",
+            "steps": [
+                {
+                    "type": "front",
+                    "name": "Document Front",
+                    "mode": {
+                        "uploader": true,
+                        "video": true
+                    }
+                },
+                {
+                    "type": "mrz",
+                    "name": "Document MRZ Barcode",
+                    "mode": {
+                        "uploader": true,
+                        "video": true
+                    }
+                },
+                {
+                    "type": "face",
+                    "name": "Face",
+                    "mode": {
+                        "uploader": true,
+                        "video": true
+                    }
+                }
+            ]
+        },
+        {
+            "isActive": true,
+            "type": "GreenCard",
+            "steps": [
+                {
+                    "type": "front",
+                    "name": "Document Front",
+                    "mode": {
+                        "uploader": true,
+                        "video": true
+                    }
+                },
+                {
+                    "type": "mrz",
+                    "name": "Document MRZ Barcode",
+                    "mode": {
+                        "uploader": true,
+                        "video": true
+                    }
+                },
+                {
+                    "type": "face",
+                    "name": "Face",
+                    "mode": {
+                        "uploader": true,
+                        "video": true
+                    }
+                }
+            ]
+        },
+        {
+            "isActive": true,
+            "type": "InternationalId",
+            "steps": [
+                {
+                    "type": "front",
+                    "name": "Document Front",
+                    "mode": {
+                        "uploader": true,
+                        "video": true
+                    }
+                },
+                {
+                    "type": "mrz",
+                    "name": "Document MRZ Barcode",
+                    "mode": {
+                        "uploader": true,
+                        "video": true
+                    }
+                },
+                {
+                    "type": "face",
+                    "name": "Face",
+                    "mode": {
+                        "uploader": true,
+                        "video": true
+                    }
+                }
+            ]
+        }
+    ],
+    "licenseKey": ""
+}

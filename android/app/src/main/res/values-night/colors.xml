@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Primary colors - Material Design 3 inspired, native Android look (Dark Mode) -->
+    <color name="colorPrimary">#8AB4F8</color>
+    <color name="colorPrimaryDark">#669DF6</color>
+    <color name="colorPrimaryVariant">#4285F4</color>
+    <color name="colorOnPrimary">#003D8F</color>
+
+    <!-- Secondary colors -->
+    <color name="colorSecondary">#03DAC6</color>
+    <color name="colorSecondaryVariant">#018786</color>
+    <color name="colorOnSecondary">#000000</color>
+
+    <!-- Background and surface colors -->
+    <color name="colorBackground">#121212</color>
+    <color name="colorSurface">#1E1E1E</color>
+    <color name="colorOnBackground">#E3E3E3</color>
+    <color name="colorOnSurface">#E3E3E3</color>
+    <color name="colorSurfaceVariant">#49454F</color>
+
+    <!-- Error colors -->
+    <color name="colorError">#F2B8B5</color>
+    <color name="colorOnError">#601410</color>
+
+    <!-- Additional UI colors -->
+    <color name="colorOutline">#938F99</color>
+    <color name="colorDivider">#3C3C3C</color>
+
+    <!-- Text colors -->
+    <color name="textColorPrimary">#E3E3E3</color>
+    <color name="textColorSecondary">#A8A8A8</color>
+    <color name="textColorHint">#757575</color>
+    <color name="textColorDisabled">#5C5C5C</color>
+
+    <!-- Scanner specific colors -->
+    <color name="scannerOverlay">#99000000</color>
+    <color name="scannerFrameActive">#8AB4F8</color>
+    <color name="scannerFrameInactive">#E3E3E3</color>
+    <color name="scannerInstructionText">#FFFFFF</color>
+</resources>
