@@ -44,7 +44,7 @@ class DiveCredentials {
 
   /// Base URL for DIVE Online SDK API
   static const String diveOnlineBaseUrl =
-      'https://api-diveonline.idscan.net/api/v2/';
+      'https://api-diveonline.idscan.net/api/v2';
 
   // ============================================================================
   // Applicant Information (for DIVE Online SDK)

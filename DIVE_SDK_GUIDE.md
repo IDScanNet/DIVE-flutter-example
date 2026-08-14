@@ -263,6 +263,8 @@ class MainActivity : FlutterFragmentActivity() {
 - Handles camera permission at runtime
 - Returns `requestKey` for server-side verification lookup
 
+The capture flow is configured through the `CaptureConfig` / `DvsConfig` builders shown above. For the full list of builder options, see [DIVE SDK Android Documentation](https://github.com/IDScanNet/DIVE-SDK-Android).
+
 ---
 
 ## iOS Integration
@@ -344,6 +346,8 @@ Create `ios/Runner/DiveConfig.json`:
 2. Select `DiveConfig.json`
 3. Ensure **Runner** target is checked
 4. Click **Add**
+
+For the full list of `DiveConfig.json` options, see [DIVE SDK iOS Documentation](https://github.com/IDScanNet/DIVE-SDK-iOS).
 
 ### Step 3: Update Info.plist
 

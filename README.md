@@ -51,7 +51,7 @@ Example Flutter application demonstrating **DIVE SDK** and **DIVE Online SDK** i
   /// Bound to Android application ID: com.example.dive_demo_usage
   static const String _diveOnlineIntegrationIdAndroid =
       '<dive_online_sdk_integration_id_android>';
-     static const String diveOnlineBaseUrl = 'https://api-diveonline.idscan.net/api/v2/';
+     static const String diveOnlineBaseUrl = 'https://api-diveonline.idscan.net/api/v2';
    }
    ```
 
@@ -360,7 +360,7 @@ class DiveCredentials {
   // === DIVE Online SDK ===
   static const String diveOnlineToken = 'YOUR_DIVE_ONLINE_TOKEN';
   static const String diveOnlineIntegrationId = 'YOUR_INTEGRATION_ID';
-  static const String diveOnlineBaseUrl = 'https://api-diveonline.idscan.net/api/v2/';
+  static const String diveOnlineBaseUrl = 'https://api-diveonline.idscan.net/api/v2';
 
   // === Demo Applicant Info ===
   static const String applicantFirstName = 'John';
