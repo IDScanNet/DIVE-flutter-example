@@ -44,6 +44,6 @@ flutter {
 }
 
 dependencies {
-    implementation("net.idscan.components.android:dvs:1.13.1")
-    implementation("net.idscan.components.android:dvsonline:1.13.1")
+    implementation("net.idscan.components.android:dvs:2.0.0")
+    implementation("net.idscan.components.android:dvsonline:2.0.0")
 }

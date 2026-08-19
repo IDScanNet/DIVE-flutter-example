@@ -20,6 +20,8 @@ Example Flutter application demonstrating **DIVE SDK** and **DIVE Online SDK** i
 
 - Flutter SDK 3.0+
 - Android Studio / Xcode
+- Android SDK command-line tools installed and licenses accepted (`flutter doctor`), JDK 17
+- Android `minSdk` 23+ (required by DIVE Android SDK 2.0.0)
 - Physical device (camera required for document scanning)
 
 ### Setup Steps
@@ -377,8 +379,22 @@ After setting up the Flutter layer, follow the guide for your chosen SDK:
 
 | SDK | Guide | Dependencies |
 |-----|-------|--------------|
-| **DIVE SDK** | [DIVE_SDK_GUIDE.md](DIVE_SDK_GUIDE.md) | `dvs` (Android), `DIVESDK` (iOS) |
-| **DIVE Online SDK** | [DIVE_ONLINE_SDK_GUIDE.md](DIVE_ONLINE_SDK_GUIDE.md) | `dvsonline` (Android), `DIVEOnlineSDK` (iOS) |
+| **DIVE SDK** | [DIVE_SDK_GUIDE.md](DIVE_SDK_GUIDE.md) | `net.idscan.components.android:dvs:2.0.0` (Android), `DIVESDK` (iOS) |
+| **DIVE Online SDK** | [DIVE_ONLINE_SDK_GUIDE.md](DIVE_ONLINE_SDK_GUIDE.md) | `net.idscan.components.android:dvsonline:2.0.0` (Android), `DIVEOnlineSDK` (iOS) |
+
+Both Android artifacts share the same transitive modules (`dvs-common`, `dvs-capture`, `dvs-net`), so they must always be bumped to the same version.
+
+### Android 2.0.0 notes
+
+`CaptureConfig.Builder` methods were renamed in 2.0.0 (see `DiveSDKActivity.launchOfflineSDK()`):
+
+| 1.13.x | 2.0.0 |
+|--------|-------|
+| `withHints(true)` | `withPreviewAnimations(true)` |
+| `withDocumentTypeSelector(false)` | `withShowDocumentTypeSelector(false)` |
+| `withAutoSubmit(false)` | `showSubmitBtn(true)` |
+
+The DIVE Online API (`DvsOnlineClient`, `DvsOnlineConfig`, `DvsOnlineFragment`, `ValidationResult`) is unchanged; `ApplicantInfo` gained an optional 7-argument constructor with a `sendEmail` flag. `DocumentType` added `IdentificationCard` and `EmploymentAuthorization`.
 
 ---
 

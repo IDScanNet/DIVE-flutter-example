@@ -101,10 +101,10 @@ class DiveSDKActivity : FragmentActivity() {
 
         try {
             val captureConfig = CaptureConfig.builder(licenseKey)
-                .withHints(true)
-                .withDocumentTypeSelector(false)
+                .withPreviewAnimations(true)
+                .withShowDocumentTypeSelector(false)
                 .withAutoStart(false)
-                .withAutoSubmit(false)
+                .showSubmitBtn(true)
                 .withDocumentType(DocumentType.DriverLicense)
                     .withFront(true, true)
                     .withBack(true, true)

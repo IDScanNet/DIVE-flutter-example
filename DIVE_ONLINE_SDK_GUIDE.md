@@ -30,7 +30,7 @@ Edit `android/app/build.gradle.kts`:
 ```kotlin
 dependencies {
     // DIVE Online SDK only
-    implementation("net.idscan.components.android:dvsonline:1.13.1")
+    implementation("net.idscan.components.android:dvsonline:2.0.0")
 }
 ```
 
@@ -241,6 +241,8 @@ class MainActivity : FlutterFragmentActivity() {
                     false   // sendLinkViaSms
                 )
                 // Note: referenceId can be passed via metadata if needed
+                // Since 2.0.0 there is also a 7-argument constructor with a trailing
+                // sendEmail flag: ApplicantInfo(..., sendSms, sendEmail)
 
                 val callResult = client.createApplicant(applicantInfo).execute()
 

@@ -30,7 +30,7 @@ Edit `android/app/build.gradle.kts`:
 ```kotlin
 dependencies {
     // DIVE SDK only
-    implementation("net.idscan.components.android:dvs:1.13.1")
+    implementation("net.idscan.components.android:dvs:2.0.0")
 }
 ```
 
@@ -176,10 +176,10 @@ class MainActivity : FlutterFragmentActivity() {
 
         try {
             val captureConfig = CaptureConfig.builder(licenseKey)
-                .withHints(true)
-                .withDocumentTypeSelector(false)
+                .withPreviewAnimations(true)
+                .withShowDocumentTypeSelector(false)
                 .withAutoStart(false)
-                .withAutoSubmit(false)
+                .showSubmitBtn(true)
                 // Driver License
                 .withDocumentType(DocumentType.DriverLicense)
                     .withFront(true, true)
