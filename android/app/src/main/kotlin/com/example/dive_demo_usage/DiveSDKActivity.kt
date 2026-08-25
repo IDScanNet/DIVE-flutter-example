@@ -2,14 +2,17 @@ package com.example.dive_demo_usage
 
 import android.app.Activity
 import android.content.Intent
+import android.graphics.Bitmap
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
-import androidx.fragment.app.FragmentActivity
+import android.util.Base64
+import androidx.appcompat.app.AppCompatActivity
 import net.idscan.components.android.dvs.*
 import net.idscan.components.android.dvs.capture.CaptureConfig
 import net.idscan.components.android.dvs.common.DocumentType
 import net.idscan.components.android.dvs.net.VerificationConfig
+import net.idscan.components.android.dvs.net.VerificationData
 import net.idscan.components.android.dvs.net.VerificationRequest
 import net.idscan.components.android.dvsonline.DvsOnlineConfig
 import net.idscan.components.android.dvsonline.DvsOnlineException
@@ -17,14 +20,23 @@ import net.idscan.components.android.dvsonline.DvsOnlineFragment
 import net.idscan.components.android.dvsonline.net.ApplicantInfo
 import net.idscan.components.android.dvsonline.net.DvsOnlineClient
 import net.idscan.components.android.dvsonline.net.ValidationResult
+import java.io.ByteArrayOutputStream
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 
 /**
  * Dedicated Activity for DIVE SDK with custom Material Design theme.
  * This activity hosts DvsFragment and DvsOnlineFragment with the Theme.DiveDemo styling.
+ *
+ * Must be an [AppCompatActivity], not a plain FragmentActivity: the SDK's layouts
+ * declare their buttons as framework `<Button>` tags carrying Material attributes
+ * (`style="?materialButtonStyle"`, `app:icon`) and rely on AppCompat's
+ * MaterialComponentsViewInflater to inflate them as MaterialButton. Without the
+ * AppCompat delegate that substitution never happens, so Theme.DiveDemo's button
+ * styling (backgroundTint, cornerRadius, rippleColor, textAppearance) is silently
+ * dropped and the SDK renders with default platform buttons.
  */
-class DiveSDKActivity : FragmentActivity() {
+class DiveSDKActivity : AppCompatActivity() {
 
     companion object {
         const val EXTRA_MODE = "mode"
@@ -36,13 +48,29 @@ class DiveSDKActivity : FragmentActivity() {
         const val EXTRA_LAST_NAME = "lastName"
         const val EXTRA_PHONE = "phone"
 
+        /** DIVE SDK, VerificationMode.Server — uploads and returns a request id */
         const val MODE_OFFLINE = "offline"
+
+        /** DIVE SDK, VerificationMode.Standalone — captures on device, no network */
+        const val MODE_STANDALONE = "standalone"
+
+        /** DIVE Online SDK */
         const val MODE_ONLINE = "online"
 
         const val RESULT_REQUEST_KEY = "requestKey"
         const val RESULT_FULL_RESULT = "fullResult"
         const val RESULT_ERROR_CODE = "errorCode"
         const val RESULT_ERROR_MESSAGE = "errorMessage"
+
+        /**
+         * Standalone (capture-only) payload handover.
+         *
+         * It carries three base64 JPEGs and would blow past the ~1MB Binder
+         * transaction limit if passed through the result Intent, so it is
+         * handed over in-process instead. MainActivity drains it on RESULT_OK.
+         */
+        @Volatile
+        var pendingStandaloneResult: HashMap<String, Any>? = null
     }
 
     private val executor: ExecutorService = Executors.newSingleThreadExecutor()
@@ -61,11 +89,16 @@ class DiveSDKActivity : FragmentActivity() {
     }
 
     private fun setupResultListeners() {
-        // Setup fragment result listener for DvsFragment
+        // Setup fragment result listener for DvsFragment.
+        // All DvsFragment callbacks must be registered in a single call: the
+        // listener is keyed by DvsFragment.REQUEST_KEY, so a second
+        // setFragmentResultListener() call would silently replace the first.
         DvsFragment.setFragmentResultListener(
             supportFragmentManager,
             this,
+            DvsFragment.SuccessCallback { /* VerificationMode.Local only, unused */ },
             DvsFragment.RequestCallback { request -> handleDvsRequestResult(request) },
+            DvsFragment.VerificationDataCallback { _, data -> handleDvsVerificationData(data) },
             DvsFragment.ErrorCallback { error -> handleDvsError(error) }
         )
 
@@ -82,7 +115,8 @@ class DiveSDKActivity : FragmentActivity() {
         val mode = intent.getStringExtra(EXTRA_MODE)
 
         when (mode) {
-            MODE_OFFLINE -> launchOfflineSDK()
+            MODE_OFFLINE -> launchOfflineSDK(VerificationMode.Server)
+            MODE_STANDALONE -> launchOfflineSDK(VerificationMode.Standalone)
             MODE_ONLINE -> launchOnlineSDK()
             else -> {
                 finishWithError("INVALID_MODE", "Unknown SDK mode: $mode")
@@ -90,7 +124,15 @@ class DiveSDKActivity : FragmentActivity() {
         }
     }
 
-    private fun launchOfflineSDK() {
+    /**
+     * Launches the DIVE SDK (non-online) capture flow.
+     *
+     * [verificationMode] selects what happens after capture:
+     * - [VerificationMode.Server] uploads the data and returns a request id
+     * - [VerificationMode.Standalone] returns the captured data locally and
+     *   never touches the network
+     */
+    private fun launchOfflineSDK(verificationMode: VerificationMode) {
         val token = intent.getStringExtra(EXTRA_TOKEN)
         val licenseKey = intent.getStringExtra(EXTRA_LICENSE_KEY)
 
@@ -134,7 +176,7 @@ class DiveSDKActivity : FragmentActivity() {
                 token,
                 captureConfig,
                 verificationConfig,
-                VerificationMode.Server
+                verificationMode
             ).build()
 
             val dvsFragment = DvsFragment.newInstance(config)
@@ -235,6 +277,56 @@ class DiveSDKActivity : FragmentActivity() {
         }
         setResult(Activity.RESULT_OK, resultIntent)
         finish()
+    }
+
+    /**
+     * VerificationMode.Standalone result: everything the SDK produced on the
+     * device, with nothing sent anywhere. There are no verification fields
+     * here — only scans, the raw PDF417/MRZ string and the document type.
+     */
+    private fun handleDvsVerificationData(data: VerificationData) {
+        try {
+            val payload = HashMap<String, Any>().apply {
+                put("mode", "standalone")
+                put("documentType", data.documentType.name)
+                data.trackString?.let { put("trackString", it) }
+                data.frontImage?.toJpegBase64()?.let { put("frontImageBase64", it) }
+                data.backImage?.toJpegBase64()?.let { put("backImageBase64", it) }
+                data.faceImage?.toJpegBase64()?.let { put("faceImageBase64", it) }
+                put("captureMethod", ArrayList(data.captureMethod.map { it.name }))
+            }
+
+            pendingStandaloneResult = payload
+            setResult(Activity.RESULT_OK, Intent())
+            finish()
+
+        } catch (e: Exception) {
+            finishWithError("RESULT_PROCESSING_ERROR", "Error processing captured data: ${e.message}")
+        }
+    }
+
+    /**
+     * Encodes a captured bitmap as a JPEG base64 string for the method channel.
+     *
+     * NO_WRAP matters: Dart's base64Decode rejects line breaks. Downscaling
+     * keeps the payload small enough to cross the channel comfortably.
+     */
+    private fun Bitmap.toJpegBase64(maxDimension: Int = 1024, quality: Int = 80): String? {
+        val scale = maxDimension.toFloat() / maxOf(width, height)
+        val scaled = if (scale < 1f) {
+            Bitmap.createScaledBitmap(this, (width * scale).toInt(), (height * scale).toInt(), true)
+        } else {
+            this
+        }
+
+        return try {
+            ByteArrayOutputStream().use { stream ->
+                scaled.compress(Bitmap.CompressFormat.JPEG, quality, stream)
+                Base64.encodeToString(stream.toByteArray(), Base64.NO_WRAP)
+            }
+        } finally {
+            if (scaled !== this) scaled.recycle()
+        }
     }
 
     private fun handleDvsError(error: DvsException) {

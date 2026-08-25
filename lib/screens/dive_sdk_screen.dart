@@ -20,6 +20,12 @@ class _DiveSdkScreenState extends State<DiveSdkScreen> {
   StreamSubscription<double>? _progressSubscription;
   bool _uploadDialogShown = false;
 
+  /// Capture only (Standalone): stop after capture, request no verification
+  bool _standaloneMode = false;
+
+  /// Whether [_resultData] came from a capture-only run
+  bool _isStandaloneResult = false;
+
   @override
   void dispose() {
     _progressSubscription?.cancel();
@@ -33,66 +39,16 @@ class _DiveSdkScreenState extends State<DiveSdkScreen> {
       _uploadDialogShown = false;
     });
 
-    // Subscribe to upload progress and show dialog when upload starts
-    _progressSubscription = DiveSDKService.uploadProgressStream.listen(
-      (progress) {
-        if (!_uploadDialogShown && mounted) {
-          _uploadDialogShown = true;
-          // Show uploading dialog when first progress event arrives
-          showDialog(
-            context: context,
-            barrierDismissible: false,
-            builder: (context) => StreamBuilder<double>(
-              stream: DiveSDKService.uploadProgressStream,
-              initialData: progress,
-              builder: (context, snapshot) {
-                final currentProgress = snapshot.data ?? 0.0;
-                return AlertDialog(
-                  content: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Text(
-                        'Uploading data...',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                      const SizedBox(height: 20),
-                      LinearProgressIndicator(
-                        value: currentProgress > 0 ? currentProgress : null,
-                        backgroundColor: Colors.grey[300],
-                        valueColor: const AlwaysStoppedAnimation<Color>(
-                          Color(0xFF2B65EC),
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      Text(
-                        currentProgress > 0
-                            ? '${(currentProgress * 100).toInt()}%'
-                            : 'Preparing...',
-                        style: const TextStyle(
-                          fontSize: 14,
-                          color: Colors.grey,
-                        ),
-                      ),
-                    ],
-                  ),
-                );
-              },
-            ),
-          );
-        }
-      },
-      onError: (error) {
-        debugPrint('Upload progress error: $error');
-      },
-    );
+    // Capture-only mode sends nothing, so there is no progress to listen for
+    if (!_standaloneMode) {
+      _subscribeToUploadProgress();
+    }
 
     try {
       final result = await DiveSDKService.launchDive(
         token: DiveCredentials.diveToken,
         licenseKey: DiveCredentials.diveLicenseKey,
+        standalone: _standaloneMode,
       );
 
       // Cancel progress subscription
@@ -114,6 +70,7 @@ class _DiveSdkScreenState extends State<DiveSdkScreen> {
           _isPublicKey = TokenUtils.isPublicKey(DiveCredentials.diveToken);
 
           setState(() {
+            _isStandaloneResult = _standaloneMode;
             _resultData =
                 fullResult ?? {'success': true, 'requestKey': requestKey};
           });
@@ -188,6 +145,64 @@ class _DiveSdkScreenState extends State<DiveSdkScreen> {
     }
   }
 
+  /// Subscribe to upload progress and show a dialog when the upload starts
+  void _subscribeToUploadProgress() {
+    _progressSubscription = DiveSDKService.uploadProgressStream.listen(
+      (progress) {
+        if (!_uploadDialogShown && mounted) {
+          _uploadDialogShown = true;
+          // Show uploading dialog when first progress event arrives
+          showDialog(
+            context: context,
+            barrierDismissible: false,
+            builder: (context) => StreamBuilder<double>(
+              stream: DiveSDKService.uploadProgressStream,
+              initialData: progress,
+              builder: (context, snapshot) {
+                final currentProgress = snapshot.data ?? 0.0;
+                return AlertDialog(
+                  content: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Text(
+                        'Uploading data...',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+                      LinearProgressIndicator(
+                        value: currentProgress > 0 ? currentProgress : null,
+                        backgroundColor: Colors.grey[300],
+                        valueColor: const AlwaysStoppedAnimation<Color>(
+                          Color(0xFF2B65EC),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      Text(
+                        currentProgress > 0
+                            ? '${(currentProgress * 100).toInt()}%'
+                            : 'Preparing...',
+                        style: const TextStyle(
+                          fontSize: 14,
+                          color: Colors.grey,
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
+          );
+        }
+      },
+      onError: (error) {
+        debugPrint('Upload progress error: $error');
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -201,7 +216,32 @@ class _DiveSdkScreenState extends State<DiveSdkScreen> {
                 'DIVE SDK',
                 style: TextStyle(fontSize: 25, fontWeight: FontWeight.w600),
               ),
-              const SizedBox(height: 60),
+              const SizedBox(height: 40),
+
+              // Capture only (Standalone) toggle
+              SizedBox(
+                width: 300,
+                child: CheckboxListTile(
+                  value: _standaloneMode,
+                  onChanged: (value) {
+                    setState(() => _standaloneMode = value ?? false);
+                  },
+                  contentPadding: EdgeInsets.zero,
+                  controlAffinity: ListTileControlAffinity.leading,
+                  dense: true,
+                  activeColor: const Color(0xFF2B65EC),
+                  title: const Text(
+                    'Capture only',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+                  ),
+                  subtitle: const Text(
+                    'Standalone mode — returns the scans and barcode data, '
+                    'no verification request is sent',
+                    style: TextStyle(fontSize: 12, color: Colors.grey),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 20),
 
               // Start Button
               SizedBox(
@@ -225,9 +265,11 @@ class _DiveSdkScreenState extends State<DiveSdkScreen> {
                 const SizedBox(height: 40),
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                  child: _isPublicKey
-                      ? _buildPublicKeyResults()
-                      : _buildDetailedResults(),
+                  child: _isStandaloneResult
+                      ? _buildStandaloneResults()
+                      : (_isPublicKey
+                            ? _buildPublicKeyResults()
+                            : _buildDetailedResults()),
                 ),
               ],
             ],
@@ -313,6 +355,44 @@ class _DiveSdkScreenState extends State<DiveSdkScreen> {
     );
   }
 
+  /// Build results for a capture-only (Standalone) run
+  ///
+  /// No verification was requested, so there is no verification status and no
+  /// parsed document fields — only what the SDK produced on the device.
+  Widget _buildStandaloneResults() {
+    return Card(
+      elevation: 2,
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Row(
+              children: [
+                Icon(Icons.cloud_off_outlined, color: Color(0xFF2B65EC)),
+                SizedBox(width: 8),
+                Text(
+                  'Capture Only',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            const Text(
+              'Captured on device, no verification requested — that request is '
+              'the SDK\'s only network call, so nothing was sent anywhere. '
+              'Hence no verification status and no parsed document fields, '
+              'only the scans and the raw barcode/MRZ string.',
+              style: TextStyle(fontSize: 13, color: Colors.grey),
+            ),
+            const SizedBox(height: 16),
+            _buildDataTable(_resultData!, 0),
+          ],
+        ),
+      ),
+    );
+  }
+
   /// Build detailed results for secret key (sk_) tokens
   Widget _buildDetailedResults() {
     return Card(
@@ -355,6 +435,36 @@ class _DiveSdkScreenState extends State<DiveSdkScreen> {
     // Cap indentation at depth 2 to prevent horizontal overflow
     final cappedDepth = depth > 2 ? 2 : depth;
     final indent = cappedDepth * 16.0;
+
+    // Raw barcode/MRZ string: monospace, it is long and contains separators
+    if (key == 'trackString' && value is String) {
+      return Padding(
+        padding: EdgeInsets.only(left: indent, bottom: 16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              _formatKey(key),
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+            ),
+            const SizedBox(height: 4),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: Colors.grey[100],
+                borderRadius: BorderRadius.circular(6),
+                border: Border.all(color: Colors.grey[300]!),
+              ),
+              child: SelectableText(
+                value,
+                style: const TextStyle(fontSize: 12, fontFamily: 'monospace'),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
 
     // Check if value is a base64 image
     if (value is String && _isBase64Image(value)) {

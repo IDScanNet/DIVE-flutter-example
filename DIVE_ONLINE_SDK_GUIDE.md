@@ -393,7 +393,7 @@ class MainActivity : FlutterFragmentActivity() {
 2. Select **Runner** project
 3. Go to **File → Add Package Dependencies...**
 4. Add: `https://github.com/IDScanNet/DIVE-SDK-iOS.git`
-5. Select version **3.0.0** or later
+5. Select version **3.260728.1** or later (up to next major)
 6. Add these products to **Runner** target:
    - `DIVEOnlineSDK`
    - `DIVESDKCommon`

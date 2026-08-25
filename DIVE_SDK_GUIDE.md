@@ -13,11 +13,31 @@ This guide covers integrating **DIVE SDK** (offline/server-mode) into your Flutt
 
 ## Table of Contents
 
-1. [Android Integration](#android-integration)
-2. [iOS Integration](#ios-integration)
-3. [Usage](#usage)
-4. [UI Customization](#ui-customization)
-5. [Document Types](#document-types)
+1. [Verification Modes](#verification-modes)
+2. [Android Integration](#android-integration)
+3. [iOS Integration](#ios-integration)
+4. [Usage](#usage)
+5. [Capture-Only (Standalone) Mode](#capture-only-standalone-mode)
+6. [UI Customization](#ui-customization)
+7. [Document Types](#document-types)
+
+---
+
+## Verification Modes
+
+Android's `VerificationMode` (in `DvsConfig.Builder`) decides what happens **after** capture:
+
+| Mode | What the SDK does | Callback | Network |
+|------|-------------------|----------|---------|
+| `Server` | `DvsClient.createVerificationRequest()` | `RequestCallback(VerificationRequest)` — just `requestId` | required |
+| `Local` | `DvsClient.verifyDocument()` | `SuccessCallback(VerificationResult)` — parsed fields, confidences, photos | required |
+| `Standalone` | nothing | `VerificationDataCallback(VerificationConfig, VerificationData)` — raw scans + track string | **none** |
+
+The iOS SDK has no equivalent enum: `sendData(data:)` contains its only network call, so *not* calling it is the Standalone mode. There is no iOS counterpart to `Local` — nothing in the iOS SDK parses a document on device.
+
+This demo uses `Server` by default and `Standalone` when the tab's **Capture only** checkbox is on.
+
+> Production note: `Local` puts the verification verdict in the hands of the client, where it can be tampered with. Prefer `Server` plus a backend lookup by `requestId`.
 
 ---
 
@@ -275,7 +295,7 @@ The capture flow is configured through the `CaptureConfig` / `DvsConfig` builder
 2. Select **Runner** project
 3. Go to **File → Add Package Dependencies...**
 4. Add: `https://github.com/IDScanNet/DIVE-SDK-iOS.git`
-5. Select version **3.0.0** or later
+5. Select version **3.260728.1** or later (up to next major)
 6. Add these products to **Runner** target:
    - `DIVESDK`
    - `DIVESDKCommon`
@@ -518,6 +538,82 @@ Future<void> startVerification() async {
   }
 }
 ```
+
+---
+
+## Capture-Only (Standalone) Mode
+
+Pass `standalone: true` to stop after capture instead of requesting verification. Since that request is also the SDK's only network call, this mode works with no network at all:
+
+```dart
+final result = await DiveSDKService.launchDive(
+  token: DiveCredentials.diveToken,
+  licenseKey: DiveCredentials.diveLicenseKey,
+  standalone: true,
+);
+```
+
+`DiveSuccess.requestKey` is empty; everything lives in `fullResult`:
+
+```jsonc
+{
+  "mode": "standalone",
+  "documentType": "DriverLicense",   // Android (DocumentType enum name)
+  "documentTypeInt": 1,              // iOS (raw Int — no enum exists there)
+  "trackString": "@\n\rANSI 636014...",   // raw PDF417 / MRZ
+  "frontImageBase64": "/9j/4AAQSkZJRg...",
+  "backImageBase64":  "/9j/4AAQSkZJRg...",
+  "faceImageBase64":  "/9j/4AAQSkZJRg...",
+  "captureMethod": ["Camera", "Camera", "Camera"]   // Android only
+}
+```
+
+**There are no parsed document fields.** Neither SDK decodes the document on device — no name, DOB or address, only the raw `trackString`. Feed it to a parser (e.g. IDScan ID Parser) or your backend if you need fields.
+
+### Android
+
+```kotlin
+val config = DvsConfig.Builder(
+    token, captureConfig, VerificationConfig(), VerificationMode.Standalone
+).build()
+
+// All DvsFragment callbacks must be registered in ONE call — the listener is
+// keyed by DvsFragment.REQUEST_KEY, so a second call replaces the first.
+DvsFragment.setFragmentResultListener(
+    supportFragmentManager, this,
+    DvsFragment.SuccessCallback { /* Local mode only */ },
+    DvsFragment.RequestCallback { request -> /* Server mode */ },
+    DvsFragment.VerificationDataCallback { _, data ->
+        // data.frontImage / backImage / faceImage : Bitmap
+        // data.trackString, data.documentType, data.captureMethod
+    },
+    DvsFragment.ErrorCallback { error -> /* ... */ }
+)
+```
+
+Two gotchas when returning this to Flutter:
+- Encode bitmaps with `Base64.NO_WRAP` — Dart's `base64Decode` rejects line breaks — and downscale first (see `Bitmap.toJpegBase64` in `DiveSDKActivity.kt`).
+- Do **not** put the payload in the result `Intent`: three base64 JPEGs exceed the ~1MB Binder limit and throw `TransactionTooLargeException`. `DiveSDKActivity` hands it over in-process through `pendingStandaloneResult`.
+
+### iOS
+
+```swift
+func diveSDKDataPrepaired(sdk: IDIVESDK, data: DIVESDKData) {
+    sdk.close()
+
+    if standaloneMode {
+        // sendData() requests verification and is the only network call,
+        // so never calling it means nothing leaves the device
+        // data.frontImage / backImage / faceImage : UIImage?
+        // data.trackString : String?,  data.documentType : Int
+        return
+    }
+
+    sdk.sendData(data: data)
+}
+```
+
+`DiveConfig.json` has no verification-mode key — it only configures the capture UI.
 
 ---
 

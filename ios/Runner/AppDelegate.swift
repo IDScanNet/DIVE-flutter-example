@@ -13,6 +13,12 @@ import DIVESDKCommon
   private var diveSDK: DIVESDK?
   private var diveOnlineSDK: DIVEOnlineSDK?
 
+  /// Capture-only mode: stop after capture and never call `sendData`. The iOS
+  /// SDK has no VerificationMode equivalent — since `sendData` both requests
+  /// verification and holds the only network call, skipping it *is* Android's
+  /// Standalone mode.
+  private var standaloneMode = false
+
   override func application(
     _ application: UIApplication,
     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
@@ -51,9 +57,10 @@ import DIVESDKCommon
 
   // Handle launchDive method
   private func handleLaunchDive(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
-    guard let args = call.arguments as? [String: String],
-          let token = args["token"],
-          let licenseKey = args["licenseKey"] else {
+    // Note: [String: Any], not [String: String] — the standalone flag is a Bool
+    guard let args = call.arguments as? [String: Any],
+          let token = args["token"] as? String,
+          let licenseKey = args["licenseKey"] as? String else {
       result(FlutterError(
         code: "INVALID_ARGUMENTS",
         message: "Token and licenseKey are required",
@@ -64,6 +71,7 @@ import DIVESDKCommon
 
     // Store result callback
     flutterResult = result
+    standaloneMode = args["standalone"] as? Bool ?? false
 
     // Load config JSON and replace licenseKey
     guard var config = loadJson(filename: "DiveConfig") else {
@@ -102,6 +110,7 @@ import DIVESDKCommon
 
     // Store result callback
     flutterResult = result
+    standaloneMode = false
 
     // Step 1: Create applicant using custom method (pattern from original demo)
     createApplicant(
@@ -200,13 +209,47 @@ import DIVESDKCommon
 // DIVE SDK Delegate implementation
 extension AppDelegate: DIVESDKDelegate {
   func diveSDKDataPrepaired(sdk: IDIVESDK, data: DIVESDKData) {
-    // Pattern from original demo: close UI, then send data
-    print("📤 DIVE SDK: Data prepared, closing UI and sending to server...")
-
-    // Dismiss the DIVE SDK UI when data is ready to be sent
+    // Dismiss the DIVE SDK UI once capture is done
     sdk.close()
 
-    // Now send the data (can add custom logic before sending)
+    // Capture-only mode: return what was captured and stop here. sendData()
+    // is what requests verification, and it holds the SDK's only network
+    // call, so not calling it means nothing leaves the device.
+    if standaloneMode {
+      print("📴 DIVE SDK: Capture finished, no verification will be requested")
+
+      var payload: [String: Any] = [
+        "mode": "standalone",
+        // The iOS SDK exposes the document type as a raw Int only — there is
+        // no enum to map it to a name like on Android
+        "documentTypeInt": data.documentType
+      ]
+      if let trackString = data.trackString {
+        payload["trackString"] = trackString
+      }
+      if let front = data.frontImage?.jpegBase64() {
+        payload["frontImageBase64"] = front
+      }
+      if let back = data.backImage?.jpegBase64() {
+        payload["backImageBase64"] = back
+      }
+      if let face = data.faceImage?.jpegBase64() {
+        payload["faceImageBase64"] = face
+      }
+
+      flutterResult?([
+        "success": true,
+        "requestKey": "",
+        "fullResult": payload
+      ])
+      flutterResult = nil
+      diveSDK = nil
+      standaloneMode = false
+      return
+    }
+
+    // Server mode: upload and wait for the verification result
+    print("📤 DIVE SDK: Data prepared, sending to server...")
     sdk.sendData(data: data)
   }
 
@@ -227,6 +270,7 @@ extension AppDelegate: DIVESDKDelegate {
     flutterResult = nil
     diveSDK = nil
     diveOnlineSDK = nil
+    standaloneMode = false
   }
 
   func diveSDKError(sdk: IDIVESDK, error: Error) {
@@ -244,6 +288,7 @@ extension AppDelegate: DIVESDKDelegate {
         self?.flutterResult = nil
         self?.diveSDK = nil
         self?.diveOnlineSDK = nil
+        self?.standaloneMode = false
       }
     } else {
       // UI already dismissed, just return error
@@ -255,6 +300,7 @@ extension AppDelegate: DIVESDKDelegate {
       flutterResult = nil
       diveSDK = nil
       diveOnlineSDK = nil
+      standaloneMode = false
     }
   }
 
@@ -266,6 +312,31 @@ extension AppDelegate: DIVESDKDelegate {
     DispatchQueue.main.async { [weak self] in
       self?.eventSink?(Double(progress))
     }
+  }
+}
+
+// Image encoding for the method channel
+private extension UIImage {
+  /// Encodes the image as JPEG base64 for the method channel.
+  ///
+  /// No `data:` prefix and no line breaks: that keeps the string starting with
+  /// `/9j/`, which is what the Flutter result renderer detects as an image, and
+  /// Dart's `base64Decode` rejects wrapped base64. Downscaling keeps the
+  /// payload small.
+  func jpegBase64(maxDimension: CGFloat = 1024, quality: CGFloat = 0.8) -> String? {
+    let scale = maxDimension / max(size.width, size.height)
+    let image: UIImage
+    if scale < 1 {
+      let newSize = CGSize(width: size.width * scale, height: size.height * scale)
+      let renderer = UIGraphicsImageRenderer(size: newSize)
+      image = renderer.image { _ in
+        self.draw(in: CGRect(origin: .zero, size: newSize))
+      }
+    } else {
+      image = self
+    }
+
+    return image.jpegData(compressionQuality: quality)?.base64EncodedString()
   }
 }
 

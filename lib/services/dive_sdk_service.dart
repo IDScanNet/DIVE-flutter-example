@@ -84,16 +84,22 @@ class DiveSDKService {
   ///
   /// [token] - API authorization token for DIVE server
   /// [licenseKey] - License key for SDK configuration
+  /// [standalone] - Capture only: stop after capture instead of requesting
+  ///   verification (Android `VerificationMode.Standalone` / iOS: `sendData`
+  ///   is never called). The result carries the raw scans and track string
+  ///   instead of a verification request id, and since the verification
+  ///   request is the only network call, nothing is uploaded at all.
   ///
   /// Returns a [DiveResult] indicating success, error, or cancellation
   static Future<DiveResult> launchDive({
     required String token,
     required String licenseKey,
+    bool standalone = false,
   }) async {
     try {
       final result = await _channel.invokeMethod<Map<Object?, Object?>>(
         'launchDive',
-        {'token': token, 'licenseKey': licenseKey},
+        {'token': token, 'licenseKey': licenseKey, 'standalone': standalone},
       );
 
       return _parseResult(result);

@@ -30,6 +30,9 @@ class MainActivity : FlutterFragmentActivity() {
     private var pendingPhone: String? = null
     private var isOnlineMode: Boolean = false
 
+    /** DIVE SDK capture-only mode: VerificationMode.Standalone, no network */
+    private var isStandaloneMode: Boolean = false
+
     // Activity result launcher for DiveSDKActivity
     private lateinit var diveSDKLauncher: ActivityResultLauncher<Intent>
 
@@ -71,6 +74,7 @@ class MainActivity : FlutterFragmentActivity() {
                     pendingToken = token
                     pendingLicenseKey = licenseKey
                     isOnlineMode = false
+                    isStandaloneMode = call.argument<Boolean>("standalone") ?: false
 
                     checkCameraPermissionAndLaunch()
                 }
@@ -100,6 +104,7 @@ class MainActivity : FlutterFragmentActivity() {
                     pendingLastName = lastName
                     pendingPhone = phone
                     isOnlineMode = true
+                    isStandaloneMode = false
 
                     checkCameraPermissionAndLaunch()
                 }
@@ -158,7 +163,11 @@ class MainActivity : FlutterFragmentActivity() {
                 putExtra(DiveSDKActivity.EXTRA_LAST_NAME, pendingLastName)
                 putExtra(DiveSDKActivity.EXTRA_PHONE, pendingPhone)
             } else {
-                putExtra(DiveSDKActivity.EXTRA_MODE, DiveSDKActivity.MODE_OFFLINE)
+                putExtra(
+                    DiveSDKActivity.EXTRA_MODE,
+                    if (isStandaloneMode) DiveSDKActivity.MODE_STANDALONE
+                    else DiveSDKActivity.MODE_OFFLINE
+                )
                 putExtra(DiveSDKActivity.EXTRA_TOKEN, pendingToken)
                 putExtra(DiveSDKActivity.EXTRA_LICENSE_KEY, pendingLicenseKey)
             }
@@ -168,8 +177,34 @@ class MainActivity : FlutterFragmentActivity() {
     }
 
     private fun handleSDKResult(resultCode: Int, data: Intent?) {
+        // Standalone (capture-only) payload is handed over in-process, not
+        // through the Intent — base64 scans would exceed the Binder limit.
+        // Always drain it so a cancelled run can't leak into the next one.
+        val standaloneResult = DiveSDKActivity.pendingStandaloneResult
+        DiveSDKActivity.pendingStandaloneResult = null
+
         when (resultCode) {
             Activity.RESULT_OK -> {
+                if (isStandaloneMode) {
+                    if (standaloneResult != null) {
+                        pendingResult?.success(
+                            mapOf(
+                                "success" to true,
+                                "requestKey" to "",
+                                "fullResult" to standaloneResult
+                            )
+                        )
+                    } else {
+                        pendingResult?.error(
+                            "MISSING_DATA",
+                            "Captured data was lost before it reached Flutter",
+                            null
+                        )
+                    }
+                    clearPendingState()
+                    return
+                }
+
                 val requestKey = data?.getStringExtra(DiveSDKActivity.RESULT_REQUEST_KEY)
 
                 @Suppress("UNCHECKED_CAST")
@@ -185,7 +220,7 @@ class MainActivity : FlutterFragmentActivity() {
                         )
                     )
                 } else {
-                    // Offline mode result
+                    // DIVE SDK server mode result
                     pendingResult?.success(
                         mapOf(
                             "success" to true,
@@ -214,6 +249,7 @@ class MainActivity : FlutterFragmentActivity() {
         pendingLastName = null
         pendingPhone = null
         isOnlineMode = false
+        isStandaloneMode = false
     }
 
     override fun onDestroy() {

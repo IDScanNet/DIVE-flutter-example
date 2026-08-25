@@ -6,8 +6,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/IDScanNet/DIVE-SDK-iOS.git",
       "state" : {
-        "revision" : "ad1db2781f047db4ccca2b577aa9d28625df045e",
-        "version" : "3.251121.1"
+        "revision" : "f61a291ed2e54f10f74ca30f50532d8cc22e1644",
+        "version" : "3.260728.1"
       }
     },
     {
@@ -15,8 +15,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/IDScanNet/IDScanIDDetectorIOS.git",
       "state" : {
-        "revision" : "582d06027283b4317197642adb2a50428c869c13",
-        "version" : "1.251030.1"
+        "revision" : "3e8ee6d63465b8fe870a33d8f99fb6e11827ca46",
+        "version" : "1.260225.1"
       }
     },
     {

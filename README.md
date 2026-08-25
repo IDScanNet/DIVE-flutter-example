@@ -75,8 +75,10 @@ Choose the SDK based on your requirements:
 
 | Choose | When to Use |
 |--------|-------------|
-| **[DIVE SDK Guide](DIVE_SDK_GUIDE.md)** | You need server-mode verification with request key |
+| **[DIVE SDK Guide](DIVE_SDK_GUIDE.md)** | You need server-mode verification with request key, or on-device capture with no network at all |
 | **[DIVE Online SDK Guide](DIVE_ONLINE_SDK_GUIDE.md)** | You need full online verification workflow with results |
+
+The DIVE SDK tab has a **Capture only** checkbox: with it on, the SDK stops after capture and requests no verification, returning the scans and the raw barcode/MRZ string instead of a request key. That verification request is also the SDK's only network call, so this mode works with no network at all. See [Capture-Only (Standalone) Mode](DIVE_SDK_GUIDE.md#capture-only-standalone-mode).
 
 ---
 
@@ -85,7 +87,8 @@ Choose the SDK based on your requirements:
 | Feature | DIVE SDK | DIVE Online SDK |
 |---------|----------|-----------------|
 | **Purpose** | Server-mode document verification | Full online verification workflow |
-| **Result** | Request Key (for server-side lookup) | Complete verification result with fields |
+| **Result** | Request Key (for server-side lookup), or scans + raw track string in capture-only mode | Complete verification result with fields |
+| **Works without network** | Yes, in capture-only (Standalone) mode | No |
 | **Applicant** | Not required | Required (created before scanning) |
 | **License Key** | Required | Not needed |
 | **Integration ID** | Not needed | Required |
@@ -210,18 +213,20 @@ class DiveSDKService {
     'com.example.dive_demo_usage/dive_sdk',
   );
 
-  /// Launch DIVE SDK for document scanning (offline mode)
+  /// Launch DIVE SDK for document scanning (server mode by default)
   ///
   /// [token] - API authorization token
   /// [licenseKey] - License key for SDK
+  /// [standalone] - Capture only: request no verification, send nothing
   static Future<DiveResult> launchDive({
     required String token,
     required String licenseKey,
+    bool standalone = false,
   }) async {
     try {
       final result = await _channel.invokeMethod<Map<Object?, Object?>>(
         'launchDive',
-        {'token': token, 'licenseKey': licenseKey},
+        {'token': token, 'licenseKey': licenseKey, 'standalone': standalone},
       );
       return _parseResult(result);
     } on PlatformException catch (e) {
@@ -379,7 +384,7 @@ After setting up the Flutter layer, follow the guide for your chosen SDK:
 
 | SDK | Guide | Dependencies |
 |-----|-------|--------------|
-| **DIVE SDK** | [DIVE_SDK_GUIDE.md](DIVE_SDK_GUIDE.md) | `net.idscan.components.android:dvs:2.0.0` (Android), `DIVESDK` (iOS) |
+| **DIVE SDK** | [DIVE_SDK_GUIDE.md](DIVE_SDK_GUIDE.md) | `net.idscan.components.android:dvs:2.0.0` (Android), `DIVESDK` 3.260728.1 (iOS) |
 | **DIVE Online SDK** | [DIVE_ONLINE_SDK_GUIDE.md](DIVE_ONLINE_SDK_GUIDE.md) | `net.idscan.components.android:dvsonline:2.0.0` (Android), `DIVEOnlineSDK` (iOS) |
 
 Both Android artifacts share the same transitive modules (`dvs-common`, `dvs-capture`, `dvs-net`), so they must always be bumped to the same version.

@@ -46,4 +46,9 @@ flutter {
 dependencies {
     implementation("net.idscan.components.android:dvs:2.0.0")
     implementation("net.idscan.components.android:dvsonline:2.0.0")
+    // Both arrive transitively via the DIVE SDK, but DiveSDKActivity uses AppCompatActivity
+    // directly and Theme.DiveDemo extends Theme.MaterialComponents — declare them explicitly
+    // so the theme keeps working if the SDK ever drops them from its own dependencies.
+    implementation("androidx.appcompat:appcompat:1.3.0")
+    implementation("com.google.android.material:material:1.3.0")
 }
